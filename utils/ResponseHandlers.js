@@ -6,11 +6,13 @@ const successResponse = (res, message, data = null) => {
   });
 };
 
-const errorResponse = (res, message, statusCode = 500) => {
+const errorResponse = (res, message, statusCode, errorDetails) => {
   return res.status(statusCode).json({
     success: false,
-    message,
+    message: message,
+    errors: errorDetails,
   });
 };
+
 
 module.exports = { successResponse, errorResponse };
