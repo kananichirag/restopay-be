@@ -53,7 +53,7 @@ const SignUpAPI = async (req, res) => {
     return successResponse(res, "Validation successful", newAdmin);
   } catch (error) {
     console.log(error);
-    return errorResponse(res, "An unexpected error occurred");
+    return errorResponse(res, "An unexpected error occurred", 500, error.message);
   }
 };
 
@@ -67,8 +67,9 @@ const LoginAPI = async (req, res) => {
     if (error) {
       return errorResponse(
         res,
+        "Validation Error",
+        400,
         error.details.map((err) => err.message),
-        400
       );
     }
 
@@ -83,7 +84,7 @@ const LoginAPI = async (req, res) => {
     const isValidPassword = await bcryptjs.compare(password, user.password);
 
     if (!isValidPassword) {
-      return errorResponse(res, "Invalid Password");
+      return errorResponse(res, "Invalid Password", 401);
     }
 
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRATE_KEY, { expiresIn: "2h" })
@@ -93,7 +94,7 @@ const LoginAPI = async (req, res) => {
     return successResponse(res, "Login successful", { token, user });
   } catch (error) {
     console.log(error);
-    return errorResponse(res, "An unexpected error occurred");
+    return errorResponse(res, "An unexpected error occurred", 500, error.message);
   }
 };
 
