@@ -10,7 +10,7 @@ const restaurantschema = mongoose.Schema({
         type: String,
         required: true,
     },
-    manager: {
+    manager_name: {
         type: String,
         required: true,
     },
@@ -18,6 +18,9 @@ const restaurantschema = mongoose.Schema({
         type: String,
         required: true,
         unique: true
+    },
+    manager_email_verification_token: {
+        type: String
     },
     admin_id: {
         type: mongoose.Schema.Types.ObjectId,

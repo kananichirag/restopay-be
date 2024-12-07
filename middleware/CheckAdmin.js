@@ -25,6 +25,12 @@ const ChcekisAdmin = async (req, res, next) => {
 
         next();
     } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({ message: 'Token has expired. Please log in again.' });
+        }
+        if (error instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({ message: 'Invalid token. Please log in again.' });
+        }
         console.error(error);
         return res.status(500).json({ message: 'Error At CheckisAdmin Middlwware' });
     }

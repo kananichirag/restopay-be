@@ -87,7 +87,7 @@ const LoginAPI = async (req, res) => {
       return errorResponse(res, "Invalid Password", 401);
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRATE_KEY, { expiresIn: "2h" })
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRATE_KEY, { expiresIn: "24h" })
     user.isActive = true;
     await user.save();
 
