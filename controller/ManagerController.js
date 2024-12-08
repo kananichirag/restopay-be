@@ -3,6 +3,17 @@ const Manager = require("../model/ManagerModel")
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken")
 const { successResponse, errorResponse } = require("../utils/ResponseHandlers");
+const joi = require("joi");
+
+const ManagerSignUpSchema = joi.object({
+    password: joi.string().min(6).required(),
+    mobileno: joi.string().pattern(/^[0-9]{10}$/).required()
+})
+
+const ManagerLoginSchema = joi.object({
+    manager_email: joi.string().email().required(),
+    password: joi.string().min(6).required(),
+})
 
 const ManagerSignUp = async (req, res) => {
     try {
@@ -20,14 +31,27 @@ const ManagerSignUp = async (req, res) => {
         }
 
         const { password, mobileno } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const { error, value } = ManagerSignUpSchema.validate(req.body, {
+            abortEarly: false,
+        });
+
+        if (error) {
+            return errorResponse(
+                res,
+                "Validation error",
+                400,
+                error.details.map((err) => err.message)
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(value.password, 10);
 
         const newManager = new Manager({
             name: restaurant.manager_name,
             manager_email: restaurant.manager_email,
             password: hashedPassword,
             restaurant_id: restaurant._id,
-            mobileno: mobileno
+            mobileno: value.mobileno
         });
 
         await newManager.save();
@@ -46,9 +70,19 @@ const ManagerLogin = async (req, res) => {
     try {
         const { manager_email, password } = req.body;
 
-        if (!manager_email || !password) {
-            return errorResponse(res, "Email and password are required", 400);
+        const { error, value } = ManagerLoginSchema.validate(req.body, {
+            abortEarly: false,
+        });
+
+        if (error) {
+            return errorResponse(
+                res,
+                "Validation error",
+                400,
+                error.details.map((err) => err.message)
+            );
         }
+
 
         const manager = await Manager.findOne({ manager_email });
         if (!manager) {
