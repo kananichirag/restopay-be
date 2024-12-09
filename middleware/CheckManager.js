@@ -11,12 +11,17 @@ const IsManager = (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRATE_KEY);
 
-        const { restaurant_id } = decoded;
+        const { restaurant_id, manager_id } = decoded;
+
+        if (!manager_id) {
+            return res.status(401).json({ message: "Manager ID not found in token" });
+        }
 
         if (!restaurant_id) {
             return res.status(401).json({ message: "Restaurant ID not found in token" });
         }
         req.restaurantId = restaurant_id;
+        req.managerId = manager_id;
         next();
     } catch (error) {
         console.error(error);

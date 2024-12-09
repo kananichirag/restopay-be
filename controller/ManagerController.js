@@ -4,6 +4,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken")
 const { successResponse, errorResponse } = require("../utils/ResponseHandlers");
 const joi = require("joi");
+const Cashier = require("../model/CashierModel");
+const { generateVerificationToken } = require("../utils/Helpers");
+const nodemailer = require("nodemailer")
 
 const ManagerSignUpSchema = joi.object({
     password: joi.string().min(6).required(),
@@ -14,6 +17,10 @@ const ManagerLoginSchema = joi.object({
     manager_email: joi.string().email().required(),
     password: joi.string().min(6).required(),
 })
+
+const CashierSignupSchema = joi.object({
+    email: joi.string().email().required(),
+});
 
 const ManagerSignUp = async (req, res) => {
     try {
@@ -115,7 +122,74 @@ const ManagerLogin = async (req, res) => {
     }
 };
 
+
+const AddCashier = async (req, res) => {
+    try {
+        const { error, value } = CashierSignupSchema.validate(req.body, {
+            abortEarly: false,
+        });
+
+        if (error) {
+            return res.status(400).json({
+                message: "Validation error",
+                errors: error.details.map((err) => err.message),
+            });
+        }
+
+        const { email } = value;
+
+        const existingCashier = await Cashier.findOne({ email });
+        if (existingCashier) {
+            return res.status(400).json({ message: "Cashier already exists" });
+        }
+
+        const verificationToken = generateVerificationToken();
+
+        const manager = await Manager.findOne({ _id: req.managerId });
+
+        if (!manager) {
+            return errorResponse(res, "Manager Not Found", 400);
+        }
+
+        manager.cashier_verification_token = verificationToken;
+        await manager.save();
+
+        const htmlContent = `
+        <p>Hello ${value.name},</p>
+        <p>Click the link below to verify your email and complete your registration:</p>
+        <p>Your Verification Token is:${verificationToken}</p>
+        <a href="http:localhost:3030/v1/auth/verify-email?token=${verificationToken}">Verify Email</a>
+        <p>If you did not request this, please ignore this email.</p>
+    `;
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: "kananichirag444@gmail.com",
+                pass: "mhuy gdar vgaz vczj",
+            },
+        });
+
+
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: value.email,
+            subject: 'Cashier Email Verification',
+            html: htmlContent,
+        });
+
+        if (info) {
+            return successResponse(res, "Cashier added successfully and email sent!");
+        }
+    } catch (error) {
+        console.error(error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
+
 module.exports = {
     ManagerSignUp,
-    ManagerLogin
+    ManagerLogin,
+    AddCashier
 }
