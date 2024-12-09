@@ -21,7 +21,10 @@ const managerschema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Restaurant",
         required: true
-    }
+    },
+    cashier_verification_token: {
+        type: String
+    },
 });
 
 const Manager = mongoose.model("Manager", managerschema);
