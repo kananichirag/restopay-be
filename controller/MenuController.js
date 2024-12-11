@@ -40,8 +40,15 @@ const AddMenuItem = async (req, res) => {
             );
         }
 
-        const { name, price, category, quantity, description, isAvailable, imageUrl } = value;
+        const { name, price, category, quantity, description, isAvailable } = value;
         const restaurantId = req.restaurantId;
+
+        if (!req.file) {
+            return errorResponse(res, "Image file is required", 400);
+        }
+
+        // Get S3 file URL from the uploaded file
+        const imageUrl = req.file.location;
 
         try {
 
@@ -52,6 +59,19 @@ const AddMenuItem = async (req, res) => {
                     restaurantId,
                     items: [],
                 });
+            }
+
+            // Check if an item with the same name already exists
+            const isDuplicate = menu.items.some(
+                (item) => item.name.toLowerCase() === name.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                return errorResponse(
+                    res,
+                    `A menu item with the name "${name}" already exists`,
+                    400
+                );
             }
 
             const newItem = {
