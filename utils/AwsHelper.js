@@ -10,6 +10,9 @@ const s3 = new S3({
         accessKeyId: process.env.S3_ACCESS_KEY,
         secretAccessKey: process.env.S3_SECRATE_KEY,
     },
+    requestTimeout: 600000, // Increased timeout
+    maxAttempts: 5, // Retry up to 5 times
+    retryDelayOptions: { base: 1000 }, // Retry delay (in ms)
 });
 
 const upload = multer({

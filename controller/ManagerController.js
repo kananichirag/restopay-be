@@ -14,7 +14,7 @@ const ManagerSignUpSchema = joi.object({
 })
 
 const ManagerLoginSchema = joi.object({
-    manager_email: joi.string().email().required(),
+    email: joi.string().email().required(),
     password: joi.string().min(6).required(),
 })
 
@@ -75,7 +75,7 @@ const ManagerSignUp = async (req, res) => {
 
 const ManagerLogin = async (req, res) => {
     try {
-        const { manager_email, password } = req.body;
+        const { email, password } = req.body;
 
         const { error, value } = ManagerLoginSchema.validate(req.body, {
             abortEarly: false,
@@ -91,14 +91,14 @@ const ManagerLogin = async (req, res) => {
         }
 
 
-        const manager = await Manager.findOne({ manager_email });
+        const manager = await Manager.findOne({ manager_email: email });
         if (!manager) {
-            return errorResponse(res, "Invalid email ", 401);
+            return errorResponse(res, "Invalid email ", 201);
         }
 
         const isMatch = await bcrypt.compare(password, manager.password);
         if (!isMatch) {
-            return errorResponse(res, "Invalid  password", 401);
+            return errorResponse(res, "Invalid  password", 201);
         }
 
         const Manager_token = jwt.sign(
@@ -140,7 +140,7 @@ const AddCashier = async (req, res) => {
 
         const existingCashier = await Cashier.findOne({ email });
         if (existingCashier) {
-            return res.status(400).json({ message: "Cashier already exists" });
+            return res.status(201).json({ message: "Cashier already exists" });
         }
 
         const verificationToken = generateVerificationToken();
@@ -148,7 +148,7 @@ const AddCashier = async (req, res) => {
         const manager = await Manager.findOne({ _id: req.managerId });
 
         if (!manager) {
-            return errorResponse(res, "Manager Not Found", 400);
+            return errorResponse(res, "Manager Not Found", 201);
         }
 
         manager.cashier_verification_token = verificationToken;

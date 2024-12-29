@@ -3,8 +3,11 @@ const app = express();
 const IndexRoutes = require("./routes/IndexRoutes");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors");
 dotenv.config();
 
+
+app.use(cors());
 app.use(express.json());
 app.use("/v1", IndexRoutes);
 
