@@ -142,8 +142,42 @@ const DeleteItem = async (req, res) => {
 };
 
 
+const UpdateItem = async (req, res) => {
+    try {
+        const restaurantId = req.params.id;
+        const { _id, ...updateFields } = req.body;
+
+        if (!restaurantId || !_id) {
+            return errorResponse(res, "Restaurant ID and Item ID are required", 201);
+        }
+        const menu = await Menu.findOne({ restaurantId });
+        if (!menu) {
+            return errorResponse(res, "Menu not found", 201);
+        }
+
+        const item = menu.items.id(_id);
+        if (!item) {
+            return errorResponse(res, "Item not found", 201);
+        }
+
+        Object.keys(updateFields).forEach((key) => {
+            if (updateFields[key] !== undefined || updateFields[key] !== null || updateFields[key] !== "") {
+                item[key] = updateFields[key];
+            }
+        });
+
+        await menu.save();
+        return successResponse(res, "Item updated successfully", item);
+    } catch (error) {
+        console.error("UpdateItem error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+};
+
+
 module.exports = {
     AddMenuItem,
     GetAllMenuItems,
-    DeleteItem
+    DeleteItem,
+    UpdateItem
 }
