@@ -35,7 +35,7 @@ const AddMenuItem = async (req, res) => {
             return errorResponse(
                 res,
                 "Validation error",
-                400,
+                201,
                 error.details.map((err) => err.message)
             );
         }
@@ -44,10 +44,9 @@ const AddMenuItem = async (req, res) => {
         const restaurantId = req.restaurantId;
 
         if (!req.file) {
-            return errorResponse(res, "Image file is required", 400);
+            return errorResponse(res, "Image file is required", 201);
         }
 
-        // Get S3 file URL from the uploaded file
         const imageUrl = req.file.location;
 
         try {
@@ -70,7 +69,7 @@ const AddMenuItem = async (req, res) => {
                 return errorResponse(
                     res,
                     `A menu item with the name "${name}" already exists`,
-                    400
+                    201
                 );
             }
 
@@ -101,6 +100,84 @@ const AddMenuItem = async (req, res) => {
 }
 
 
+const GetAllMenuItems = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return errorResponse(res, "Restaurant ID is required", 201);
+        }
+        const Items = await Menu.find({ restaurantId: id });
+        if (Items.length === 0) {
+            return errorResponse(res, "No Menu Items Found", 201);
+        }
+        return successResponse(res, "All Menu Items", Items);
+    } catch (error) {
+        console.error("GetAllMenuItems error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
+
+const DeleteItem = async (req, res) => {
+    try {
+        const { restaurantId, ItemId } = req.body;
+
+        if (!restaurantId || !ItemId) {
+            return errorResponse(res, "Restaurant ID and Item ID are required", 201);
+        }
+
+        const restaurant = await Menu.findOneAndUpdate(
+            { restaurantId },
+            { $pull: { items: { _id: ItemId } } },
+            { new: true }
+        );
+        if (!restaurant) {
+            return errorResponse(res, "Restaurant not found", 201);
+        }
+        return successResponse(res, "Item deleted successfully");
+    } catch (error) {
+        console.error("DeleteItem error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+};
+
+
+const UpdateItem = async (req, res) => {
+    try {
+        const restaurantId = req.params.id;
+        const { _id, ...updateFields } = req.body;
+
+        if (!restaurantId || !_id) {
+            return errorResponse(res, "Restaurant ID and Item ID are required", 201);
+        }
+        const menu = await Menu.findOne({ restaurantId });
+        if (!menu) {
+            return errorResponse(res, "Menu not found", 201);
+        }
+
+        const item = menu.items.id(_id);
+        if (!item) {
+            return errorResponse(res, "Item not found", 201);
+        }
+
+        Object.keys(updateFields).forEach((key) => {
+            if (updateFields[key] !== undefined || updateFields[key] !== null || updateFields[key] !== "") {
+                item[key] = updateFields[key];
+            }
+        });
+
+        await menu.save();
+        return successResponse(res, "Item updated successfully", item);
+    } catch (error) {
+        console.error("UpdateItem error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+};
+
+
 module.exports = {
-    AddMenuItem
+    AddMenuItem,
+    GetAllMenuItems,
+    DeleteItem,
+    UpdateItem
 }

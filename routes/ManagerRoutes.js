@@ -6,5 +6,8 @@ const IsManager = require("../middleware/CheckManager")
 ManagerRoute.post('/signup/:token', ManagerController.ManagerSignUp);
 ManagerRoute.post('/login', ManagerController.ManagerLogin);
 ManagerRoute.post('/addcashier', IsManager, ManagerController.AddCashier);
+ManagerRoute.post('/qrcode', IsManager, ManagerController.GenrateQrCode);
+ManagerRoute.get('/getallqr/:id', IsManager, ManagerController.GetAllQrCodes);
+ManagerRoute.delete('/deleteqr', IsManager, ManagerController.DeleteQrCode);
 
 module.exports = ManagerRoute;

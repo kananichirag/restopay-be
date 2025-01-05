@@ -39,7 +39,7 @@ const SignUpAPI = async (req, res) => {
 
     const existingUser = await Admin.findOne({ email });
     if (existingUser) {
-      return errorResponse(res, "Email already exists", 400);
+      return errorResponse(res, "Email already exists", 201);
     }
     const hashPassword = await bcryptjs.hash(password, 10);
 
@@ -78,13 +78,13 @@ const LoginAPI = async (req, res) => {
     const user = await Admin.findOne({ email });
 
     if (!user) {
-      return errorResponse(res, "User not found", 401);
+      return errorResponse(res, "User not found", 201);
     }
 
     const isValidPassword = await bcryptjs.compare(password, user.password);
 
     if (!isValidPassword) {
-      return errorResponse(res, "Invalid Password", 401);
+      return errorResponse(res, "Invalid Password", 201);
     }
 
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRATE_KEY, { expiresIn: "24h" })

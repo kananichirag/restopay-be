@@ -6,7 +6,10 @@ const { successResponse, errorResponse } = require("../utils/ResponseHandlers");
 const joi = require("joi");
 const Cashier = require("../model/CashierModel");
 const { generateVerificationToken } = require("../utils/Helpers");
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
+const QRCode = require('qrcode');
+const QrModal = require("../model/QrModel");
+
 
 const ManagerSignUpSchema = joi.object({
     password: joi.string().min(6).required(),
@@ -14,7 +17,7 @@ const ManagerSignUpSchema = joi.object({
 })
 
 const ManagerLoginSchema = joi.object({
-    manager_email: joi.string().email().required(),
+    email: joi.string().email().required(),
     password: joi.string().min(6).required(),
 })
 
@@ -75,7 +78,7 @@ const ManagerSignUp = async (req, res) => {
 
 const ManagerLogin = async (req, res) => {
     try {
-        const { manager_email, password } = req.body;
+        const { email, password } = req.body;
 
         const { error, value } = ManagerLoginSchema.validate(req.body, {
             abortEarly: false,
@@ -91,14 +94,14 @@ const ManagerLogin = async (req, res) => {
         }
 
 
-        const manager = await Manager.findOne({ manager_email });
+        const manager = await Manager.findOne({ manager_email: email });
         if (!manager) {
-            return errorResponse(res, "Invalid email ", 401);
+            return errorResponse(res, "Invalid email ", 201);
         }
 
         const isMatch = await bcrypt.compare(password, manager.password);
         if (!isMatch) {
-            return errorResponse(res, "Invalid  password", 401);
+            return errorResponse(res, "Invalid  password", 201);
         }
 
         const Manager_token = jwt.sign(
@@ -140,7 +143,7 @@ const AddCashier = async (req, res) => {
 
         const existingCashier = await Cashier.findOne({ email });
         if (existingCashier) {
-            return res.status(400).json({ message: "Cashier already exists" });
+            return res.status(201).json({ message: "Cashier already exists" });
         }
 
         const verificationToken = generateVerificationToken();
@@ -148,7 +151,7 @@ const AddCashier = async (req, res) => {
         const manager = await Manager.findOne({ _id: req.managerId });
 
         if (!manager) {
-            return errorResponse(res, "Manager Not Found", 400);
+            return errorResponse(res, "Manager Not Found", 201);
         }
 
         manager.cashier_verification_token = verificationToken;
@@ -188,8 +191,120 @@ const AddCashier = async (req, res) => {
 }
 
 
+const GenrateQrCode = async (req, res) => {
+    try {
+        const { restaurantId, tableNumber } = req.body;
+
+        if (!restaurantId || !tableNumber) {
+            return res.status(201).send({ message: 'Restaurant ID and Table Number are required.' });
+        }
+
+        const ExistingTable = await QrModal.findOne({ table_no: tableNumber });
+        if (ExistingTable) {
+            return res.status(201).send({ message: 'QrCode with this table number is already exists.' });
+        }
+
+        const redirectUrl = `http://192.168.1.7:5173/menu/${restaurantId}/${tableNumber}`;
+        const qrCode = await QRCode.toDataURL(redirectUrl);
+
+        const newQrCode = new QrModal({
+            table_no: tableNumber,
+            qrcode: qrCode,
+            restaurant_id: restaurantId,
+            manager_id: req.managerId
+        });
+
+        await newQrCode.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "QR Code generated successfully",
+            newQrCode,
+        });
+    } catch (error) {
+        console.error("GenrateQrCode error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+};
+
+
+const GetAllQrCodes = async (req, res) => {
+    try {
+
+        const restaurantId = req.params.id;
+
+        if (!restaurantId) {
+            return res.status(201).send({ message: 'Restaurant ID is required.' });
+        }
+
+        const AllQr = await QrModal.find({ restaurant_id: restaurantId });
+        if (!AllQr || AllQr.length === 0) {
+            return res.status(201).send({ message: 'No Qr Code found.' });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "All Qr Codes",
+            AllQr
+        });
+    } catch (error) {
+        console.error("GetAllQrCodes error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+}
+
+const DeleteQrCode = async (req, res) => {
+    try {
+        const { id, restaurantId } = req.body;
+
+        if (!id || !restaurantId) {
+            return res.status(201).json({
+                success: false,
+                message: "QR Code ID and Restaurant ID are required.",
+            });
+        }
+
+        const findQr = await QrModal.findOne({ _id: id, restaurant_id: restaurantId });
+
+        if (!findQr) {
+            return res.status(201).json({
+                success: false,
+                message: "QR Code not found.",
+            });
+        }
+
+        await QrModal.deleteOne({ _id: id, restaurant_id: restaurantId });
+
+        return res.status(200).json({
+            success: true,
+            message: "QR Code deleted successfully.",
+        });
+    } catch (error) {
+        console.error("DeleteQrCode error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+};
+
+module.exports = { DeleteQrCode };
+
+
+
 module.exports = {
     ManagerSignUp,
     ManagerLogin,
-    AddCashier
+    AddCashier,
+    GenrateQrCode,
+    GetAllQrCodes,
+    DeleteQrCode
 }
