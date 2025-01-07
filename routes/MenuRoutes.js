@@ -8,6 +8,8 @@ MenuRoutes.post('/add', IsManager, upload.single("image"), MenuController.AddMen
 MenuRoutes.get('/getallitems/:id', MenuController.GetAllMenuItems);
 MenuRoutes.put('/update/:id', IsManager, MenuController.UpdateItem);
 MenuRoutes.delete('/deleteitem', IsManager, MenuController.DeleteItem);
+MenuRoutes.post('/createorder/:id', MenuController.CreateOrder);
+MenuRoutes.post('/verifypayment', MenuController.VerifyPayment);
 
 
 module.exports = MenuRoutes;

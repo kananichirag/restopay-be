@@ -1,6 +1,17 @@
 const Joi = require("joi");
 const Menu = require("../model/MenuModel");
+const Restaurant = require("../model/RestaurantModel");
+const Order = require('../model/OrderModel')
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 const { successResponse, errorResponse } = require("../utils/ResponseHandlers");
+const dotenv = require("dotenv");
+dotenv.config();
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_SECRET,
+});
 
 const MenuItemSchema = Joi.object({
     name: Joi.string()
@@ -175,9 +186,130 @@ const UpdateItem = async (req, res) => {
 };
 
 
+const CreateOrder = async (req, res) => {
+    try {
+        const restaurantId = req.params.id;
+        if (!restaurantId) {
+            return res.status(201).json({
+                success: false,
+                message: "restaurantId Not Found",
+            });
+        }
+
+        const ValidRestarurant = await Restaurant.findOne({ _id: restaurantId });
+        if (!ValidRestarurant) {
+            return res.status(201).json({
+                success: false,
+                message: "Restaurant Not Found"
+            })
+        }
+
+        const { username, mobileno, tableNumber, cart, payment_method } = req.body;
+
+        if (!cart || cart.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cart cannot be empty',
+            });
+        }
+
+        if (!username || !mobileno || !tableNumber || !payment_method) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields (username, mobileno, tableNumber, payment_method)',
+            });
+        }
+
+        const totalAmount = cart.reduce((total, item) => {
+            if (isNaN(item.price) || isNaN(item.quantity) || item.price <= 0 || item.quantity <= 0) {
+                console.error(`Invalid item: ${JSON.stringify(item)}`);
+                return total;
+            }
+            return total + (item.price * item.quantity);
+        }, 0);
+
+        if (totalAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Total amount must be greater than zero',
+            });
+        }
+
+        const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
+        const orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
+
+        const razorpayOrder = await razorpay.orders.create({
+            amount: totalAmount * 100,  
+            currency: 'INR',
+            receipt: `order_${Date.now()}`, 
+        });
+
+        const newOrder = new Order({
+            restaurantId,
+            username,
+            mobileno,
+            tableNumber,
+            mobileno,
+            payment_method,
+            orderNumber: orderNumber,
+            order_items: cart,
+            total_amount: totalAmount,
+            razorpayOrderId: razorpayOrder.id,
+            payment_status: 'Pending',
+        })
+
+        const savedOrder = await newOrder.save();
+        return res.status(201).json({
+            success: true,
+            message: 'Order created successfully',
+            order: savedOrder,
+            razorpayOrderId: razorpayOrder.id,
+        });
+    } catch (error) {
+        console.error("CreateOrder error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
+
+const VerifyPayment = async (req, res) => {
+    try {
+        const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+        const generatedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_SECRET)
+            .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+            .digest("hex");
+
+        if (generatedSignature === razorpaySignature) {
+            const order = await Order.findOneAndUpdate(
+                { razorpayOrderId },
+                { payment_status: "Completed", razorpayPaymentId },
+                { new: true }
+            )
+
+            res.status(200).send({
+                success: true,
+                message: "Payment verified and order placed successfully.",
+                order,
+            });
+        } else {
+            res
+                .status(201)
+                .send({ success: false, message: "Invalid payment signature." });
+        }
+
+    } catch (error) {
+        console.error("VerifyPayment error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
+
 module.exports = {
     AddMenuItem,
     GetAllMenuItems,
     DeleteItem,
-    UpdateItem
+    UpdateItem,
+    CreateOrder,
+    VerifyPayment
 }
