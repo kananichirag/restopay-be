@@ -6,8 +6,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 dotenv.config();
 const PORT = process.env.PORT || 3030;
-console.log(PORT)
-const HOST = '192.168.1.7';
+const HOST = '192.168.1.8';
 
 
 app.use(cors());
