@@ -9,7 +9,8 @@ const { generateVerificationToken } = require("../utils/Helpers");
 const nodemailer = require("nodemailer");
 const QRCode = require('qrcode');
 const QrModal = require("../model/QrModel");
-
+const dotenv = require("dotenv");
+dotenv.config();
 
 const ManagerSignUpSchema = joi.object({
     password: joi.string().min(6).required(),
@@ -204,7 +205,7 @@ const GenrateQrCode = async (req, res) => {
             return res.status(201).send({ message: 'QrCode with this table number is already exists.' });
         }
 
-        const redirectUrl = `http://192.168.1.7:5173/menu/${restaurantId}/${tableNumber}`;
+        const redirectUrl = `${process.env.FERONT_URL}/menu/${restaurantId}/${tableNumber}`;
         const qrCode = await QRCode.toDataURL(redirectUrl);
 
         const newQrCode = new QrModal({
