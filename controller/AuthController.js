@@ -27,12 +27,15 @@ const SignUpAPI = async (req, res) => {
     });
 
     if (error) {
-      return errorResponse(
-        res,
-        "Validation error",
-        400,
-        error.details.map((err) => err.message)
-      );
+      const validationErrors = error.details.reduce((acc, err) => {
+        acc[err.context.key] = err.message;
+        return acc;
+      }, {});
+      return res.status(201).json({
+        success: false,
+        message: "Validation error",
+        errors: validationErrors,
+      });
     }
 
     const { name, email, password, mobileno } = value;
@@ -50,7 +53,7 @@ const SignUpAPI = async (req, res) => {
       mobileno,
     });
     await newAdmin.save();
-    return successResponse(res, "Validation successful", newAdmin);
+    return successResponse(res, "Signup Successfully", newAdmin);
   } catch (error) {
     console.log(error);
     return errorResponse(res, "An unexpected error occurred", 500, error.message);

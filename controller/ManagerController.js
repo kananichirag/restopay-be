@@ -33,12 +33,12 @@ const ManagerSignUp = async (req, res) => {
         const restaurant = await Restaurant.findOne({ manager_email_verification_token: token.trim() });
 
         if (!restaurant) {
-            return errorResponse(res, "Invalid or expired token", 400);
+            return errorResponse(res, "Invalid or expired token", 201);
         }
 
         const existingManager = await Manager.findOne({ email: restaurant.manager_email });
         if (existingManager) {
-            return errorResponse(res, "Manager already signed up", 400);
+            return errorResponse(res, "Manager already signed up", 201);
         }
 
         const { password, mobileno } = req.body;
@@ -47,12 +47,11 @@ const ManagerSignUp = async (req, res) => {
         });
 
         if (error) {
-            return errorResponse(
-                res,
-                "Validation error",
-                400,
-                error.details.map((err) => err.message)
-            );
+            const validationErrors = {};
+            error.details.forEach(err => {
+                validationErrors[err.context.key] = err.message;
+            });
+            return errorResponse(res, "Validation error", 201, validationErrors);
         }
 
         const hashedPassword = await bcrypt.hash(value.password, 10);
@@ -125,6 +124,29 @@ const ManagerLogin = async (req, res) => {
         return errorResponse(res, "An unexpected error occurred", 500, error.message);
     }
 };
+
+const GetManagerDetails = async (req, res) => {
+    try {
+        const { token } = req.query;
+        if (!token) {
+            return errorResponse(res, "Token is Missing", 201);
+        }
+
+        const restaurant = await Restaurant.findOne({ manager_email_verification_token: token });
+        if (!restaurant) {
+            return errorResponse(res, "Invalid or expired token", 201);
+        }
+
+        return successResponse(res, "Manager details retrieved successfully", {
+            name: restaurant.manager_name,
+            email: restaurant.manager_email,
+        });
+    } catch (error) {
+        console.error(error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+};
+
 
 
 const AddCashier = async (req, res) => {
@@ -307,5 +329,6 @@ module.exports = {
     AddCashier,
     GenrateQrCode,
     GetAllQrCodes,
-    DeleteQrCode
+    DeleteQrCode,
+    GetManagerDetails
 }
