@@ -17,4 +17,4 @@ mongoose
   .connect(process.env.MONGO_URL)
   .then((e) => console.log("MongoDB Connected .!!"))
   .catch((err) => console.log("Error to Connecting MongoDB", err));
-app.listen(PORT, HOST, () => console.log("Server Start"));
+app.listen(PORT, () => console.log("Server Start"));
