@@ -88,7 +88,11 @@ const AddRestaurant = async (req, res) => {
 
 const GetAllRestaurant = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find({});
+        const { id } = req.params;
+        if (!id) {
+            return errorResponse(res, "Admin ID is required", 201);
+        }
+        const restaurants = await Restaurant.find({ admin_id: id });
         if (!restaurants) {
             return errorResponse(res, "Restaurant Not Found", 201);
         }
