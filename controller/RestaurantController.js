@@ -40,11 +40,11 @@ const AddRestaurant = async (req, res) => {
         const saved = await newRestaurant.save();
 
         const htmlContent = `
-       <p>Hello ${value.manager},</p>
-       <p>Click the link below to verify your email and complete your restaurant registration:</p>
-       <a href="http:localhost:3030/v1/auth/verify-email?token=${verificationToken}">Verify Email</a>
-       <p>If you did not request this, please ignore this email.</p>
-   `;
+        <p>Hello ${value.manager_name},</p>
+        <p>Click the link below to verify your email and complete your restaurant registration:</p>
+        <a href="${process.env.FERONT_URL}/manager-signup?token=${verificationToken}">Verify Email</a>
+        <p>If you did not request this, please ignore this email.</p>
+    `;
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -85,6 +85,66 @@ const AddRestaurant = async (req, res) => {
 
 }
 
+
+const GetAllRestaurant = async (req, res) => {
+    try {
+        const restaurants = await Restaurant.find({});
+        if (!restaurants) {
+            return errorResponse(res, "Restaurant Not Found", 201);
+        }
+        return res.status(200).json({
+            success: true,
+            message: "All Restaurants",
+            restaurants
+        });
+    } catch (error) {
+        console.error("GetAllRestaurant error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+}
+
+
+const DeleteRestaurant = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(201).json({
+                success: false,
+                message: "Restaurant ID is required",
+            });
+        }
+
+        const validRestaurant = await Restaurant.findOne({ _id: id });
+        if (!validRestaurant) {
+            return res.status(201).json({
+                success: false,
+                message: "Restaurant not found",
+            });
+        }
+
+        await Restaurant.deleteOne({ _id: id });
+
+        return res.status(200).json({
+            success: true,
+            message: "Restaurant deleted successfully",
+        });
+    } catch (error) {
+        console.error("DeleteRestaurant error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
-    AddRestaurant
+    AddRestaurant,
+    GetAllRestaurant,
+    DeleteRestaurant
 }

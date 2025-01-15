@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 dotenv.config();
+const PORT = process.env.PORT || 3030;
+const HOST = '192.168.1.3';
 
 
 app.use(cors());
@@ -15,4 +17,4 @@ mongoose
   .connect(process.env.MONGO_URL)
   .then((e) => console.log("MongoDB Connected .!!"))
   .catch((err) => console.log("Error to Connecting MongoDB", err));
-app.listen(process.env.PORT || 3030, () => console.log("Server Start"));
+app.listen(PORT, HOST, () => console.log("Server Start"));

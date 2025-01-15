@@ -239,9 +239,9 @@ const CreateOrder = async (req, res) => {
         const orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
 
         const razorpayOrder = await razorpay.orders.create({
-            amount: totalAmount * 100,  
+            amount: totalAmount * 100,
             currency: 'INR',
-            receipt: `order_${Date.now()}`, 
+            receipt: `order_${Date.now()}`,
         });
 
         const newOrder = new Order({
@@ -305,11 +305,35 @@ const VerifyPayment = async (req, res) => {
 }
 
 
+const GetAllOrders = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return errorResponse(res, "Restaurant ID is required", 201);
+        }
+
+        const FindOrders = await Order.find({ restaurantId: id });
+        if (!FindOrders) {
+            return errorResponse(res, "Orders not found", 201);
+        }
+        return res.status(201).json({
+            success: true,
+            message: 'Order Get Successfully',
+            data: FindOrders
+        });
+    } catch (error) {
+        console.error("GetAllOrders error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
+
 module.exports = {
     AddMenuItem,
     GetAllMenuItems,
     DeleteItem,
     UpdateItem,
     CreateOrder,
-    VerifyPayment
+    VerifyPayment,
+    GetAllOrders
 }
