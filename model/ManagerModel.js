@@ -25,6 +25,9 @@ const managerschema = mongoose.Schema({
     cashier_verification_token: {
         type: String
     },
+    chef_verification_token: {
+        type: String
+    },
 });
 
 const Manager = mongoose.model("Manager", managerschema);

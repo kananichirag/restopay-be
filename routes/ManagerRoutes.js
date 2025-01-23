@@ -10,5 +10,6 @@ ManagerRoute.post('/qrcode', IsManager, ManagerController.GenrateQrCode);
 ManagerRoute.get('/getallqr/:id', IsManager, ManagerController.GetAllQrCodes);
 ManagerRoute.get('/manager-details', ManagerController.GetManagerDetails);
 ManagerRoute.delete('/deleteqr', IsManager, ManagerController.DeleteQrCode);
+ManagerRoute.post('/add-chef', IsManager, ManagerController.AddChef);
 
 module.exports = ManagerRoute;

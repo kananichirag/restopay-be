@@ -319,7 +319,66 @@ const DeleteQrCode = async (req, res) => {
     }
 };
 
-module.exports = { DeleteQrCode };
+const AddChef = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(201).json({
+                success: false,
+                message: "Email is required"
+            })
+        }
+
+        const manager = await Manager.findOne({ _id: req.managerId });
+        if (!manager) {
+            return res.status(201).json({
+                success: false,
+                message: "Manager not found",
+            });
+        }
+
+        const verificationToken = generateVerificationToken();
+
+        manager.chef_email = email;
+        manager.chef_verification_token = verificationToken;
+
+        await manager.save();
+
+        const htmlContent = `
+        <p>Hello,</p>
+        <p>You have been invited to join as a chef. Please click the link below to verify your email and complete your registration:</p>
+        <a href="${process.env.FERONT_URL}/chef-signup?token=${verificationToken}">Verify Email</a>
+        <p>If you did not request this, please ignore this email.</p>
+    `;
+
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: "kananichirag444@gmail.com",
+                pass: "mhuy gdar vgaz vczj",
+            },
+        });
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Chef Email Verification",
+            html: htmlContent,
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Chef added successfully and email sent!",
+        });
+
+    } catch (error) {
+        console.error("AddChef error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message,
+        });
+    }
+}
 
 
 
@@ -330,5 +389,6 @@ module.exports = {
     GenrateQrCode,
     GetAllQrCodes,
     DeleteQrCode,
-    GetManagerDetails
+    GetManagerDetails,
+    AddChef
 }
