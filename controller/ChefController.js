@@ -86,7 +86,28 @@ const ChefLogin = async (req, res) => {
     }
 }
 
+
+const GetAllChef = async (req, res) => {
+    try {
+        const findChef = await ChefModal.find({ restaurant_id: req.restaurantId, manager_id: req.managerId });
+        if (!findChef) {
+            return errorResponse(res, "Chefs not found", 201);
+        }
+
+        if (findChef.length === 0) {
+            return errorResponse(res, "No Chef Found", 201);
+        }
+        res.status(200).json({
+            success: true,
+            chefs: findChef
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 module.exports = {
     SignUpChef,
-    ChefLogin
+    ChefLogin,
+    GetAllChef
 }
