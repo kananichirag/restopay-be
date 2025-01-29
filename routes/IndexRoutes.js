@@ -7,6 +7,7 @@ const Menu = require("./MenuRoutes");
 const Cashier = require('./CashierRoutes');
 const Staff = require("./StaffRoutes");
 const Chef = require("./ChefRoutes");
+const Report = require("./ReportRoutes");
 
 IndexRoutes.use("/auth", AuthRoutes);
 IndexRoutes.use("/restaurant", Restaurant);
@@ -15,5 +16,6 @@ IndexRoutes.use("/menu", Menu);
 IndexRoutes.use("/cashier", Cashier);
 IndexRoutes.use("/staff", Staff);
 IndexRoutes.use("/chef", Chef);
+IndexRoutes.use("/report", Report);
 
 module.exports = IndexRoutes;
