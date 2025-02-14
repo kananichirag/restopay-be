@@ -8,6 +8,7 @@ const Cashier = require('./CashierRoutes');
 const Staff = require("./StaffRoutes");
 const Chef = require("./ChefRoutes");
 const Report = require("./ReportRoutes");
+const Inventory = require("./Inventory");
 
 IndexRoutes.use("/auth", AuthRoutes);
 IndexRoutes.use("/restaurant", Restaurant);
@@ -17,5 +18,6 @@ IndexRoutes.use("/cashier", Cashier);
 IndexRoutes.use("/staff", Staff);
 IndexRoutes.use("/chef", Chef);
 IndexRoutes.use("/report", Report);
+IndexRoutes.use("/inventory", Inventory);
 
 module.exports = IndexRoutes;
