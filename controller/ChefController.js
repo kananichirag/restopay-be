@@ -1,4 +1,5 @@
 const ChefModal = require("../model/ChefModel");
+const OrderModel = require("../model/OrderModel");
 const Manager = require("../model/ManagerModel");
 const { errorResponse } = require("../utils/ResponseHandlers");
 const bcrypt = require("bcryptjs");
@@ -106,8 +107,35 @@ const GetAllChef = async (req, res) => {
     }
 }
 
+
+const ChnageStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        if (!orderId || !status) {
+            return errorResponse(res, "All fields are required", 201);
+        }
+
+        const FindOrder = await OrderModel.findOne({ _id: orderId });
+        if (!FindOrder) {
+            return errorResponse(res, "Order not found", 201);
+        }
+
+        FindOrder.order_status = status;
+        await FindOrder.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Order status changed successfully "
+        })
+    } catch (error) {
+        console.error(error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
 module.exports = {
     SignUpChef,
     ChefLogin,
-    GetAllChef
+    GetAllChef,
+    ChnageStatus
 }

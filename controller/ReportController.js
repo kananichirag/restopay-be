@@ -102,6 +102,48 @@ const GetAllRestaurantReports = async (req, res) => {
     }
 };
 
+
+const getAllCompletedOrders = async (req, res) => {
+    try {
+        // Fetch all completed orders
+        const completedOrders = await Order.find({ order_status: "Done" }).sort({ createdAt: -1 });
+
+        // Get unique restaurant IDs from the orders
+        const restaurantIds = [...new Set(completedOrders.map(order => order.restaurantId))];
+
+        // Fetch restaurant details for the IDs
+        const restaurants = await Restaurant.find({ _id: { $in: restaurantIds } });
+
+        // Create a mapping of restaurantId -> restaurantName
+        const restaurantMap = restaurants.reduce((acc, restaurant) => {
+            acc[restaurant._id] = restaurant.name; // Assuming `name` is the field storing the restaurant's name
+            return acc;
+        }, {});
+
+        // Group orders by restaurant name and count total orders
+        const groupedOrders = Object.values(restaurantMap).reduce((acc, restaurantName) => {
+            acc[restaurantName] = { totalOrders: 0, orders: [] };
+            return acc;
+        }, {});
+
+        completedOrders.forEach(order => {
+            const restaurantName = restaurantMap[order.restaurantId] || "Unknown"; // Fallback for missing restaurants
+            if (!groupedOrders[restaurantName]) {
+                groupedOrders[restaurantName] = { totalOrders: 0, orders: [] };
+            }
+            groupedOrders[restaurantName].orders.push(order);
+            groupedOrders[restaurantName].totalOrders++;
+        });
+
+        res.status(200).json({ success: true, orders: groupedOrders });
+    } catch (error) {
+        console.error("Error fetching completed orders:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
 module.exports = {
-    GetAllRestaurantReports
+    GetAllRestaurantReports,
+    getAllCompletedOrders
 };
