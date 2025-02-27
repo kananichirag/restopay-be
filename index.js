@@ -10,7 +10,7 @@ const setupOrderSocket = require("./sockets/orderSocket");
 
 dotenv.config();
 const PORT = process.env.PORT || 3030;
-// const HOST = '192.168.1.9';
+// const HOST = '192.168.1.2';
 
 app.use(cors());
 app.use(express.json());
@@ -19,7 +19,7 @@ app.use("/v1", IndexRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://192.168.1.9:5173", "https://resto-pay.netlify.app/"],
+    origin: ["http://localhost:5173", "http://192.168.1.2:5173", "https://resto-pay.netlify.app/"],
     methods: ["GET", "POST"],
     credentials: true
   },
