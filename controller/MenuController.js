@@ -52,7 +52,7 @@ const AddMenuItem = async (req, res) => {
         }
 
         const { name, price, category, quantity, description, isAvailable } = value;
-        const restaurantId = req.restaurantId;
+        const adminId = req.user._id;
 
         if (!req.file) {
             return errorResponse(res, "Image file is required", 201);
@@ -62,11 +62,11 @@ const AddMenuItem = async (req, res) => {
 
         try {
 
-            let menu = await Menu.findOne({ restaurantId });
+            let menu = await Menu.findOne({ adminId });
 
             if (!menu) {
                 menu = new Menu({
-                    restaurantId,
+                    adminId,
                     items: [],
                 });
             }
@@ -110,6 +110,24 @@ const AddMenuItem = async (req, res) => {
     }
 }
 
+const GetAllMenu = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return errorResponse(res, "Admin ID is required", 201);
+        }
+
+        const Items = await Menu.find({ adminId: id });
+        if (Items.length === 0) {
+            return errorResponse(res, "No Menu Items Found", 201);
+        }
+        return successResponse(res, "All Menu Items", Items);
+    } catch (error) {
+        console.error("GetAllMenuItems error:", error);
+        return errorResponse(res, "An unexpected error occurred", 500, error.message);
+    }
+}
+
 
 const GetAllMenuItems = async (req, res) => {
     try {
@@ -117,7 +135,13 @@ const GetAllMenuItems = async (req, res) => {
         if (!id) {
             return errorResponse(res, "Restaurant ID is required", 201);
         }
-        const Items = await Menu.find({ restaurantId: id });
+
+        const restaurant = await Restaurant.findOne({ _id: id });
+        if (!restaurant) {
+            return errorResponse(res, "Restaurant not found", 201);
+        }
+        const { admin_id } = restaurant;
+        const Items = await Menu.find({ adminId: admin_id });
         if (Items.length === 0) {
             return errorResponse(res, "No Menu Items Found", 201);
         }
@@ -131,19 +155,19 @@ const GetAllMenuItems = async (req, res) => {
 
 const DeleteItem = async (req, res) => {
     try {
-        const { restaurantId, ItemId } = req.body;
+        const { adminId, ItemId } = req.body;
 
-        if (!restaurantId || !ItemId) {
-            return errorResponse(res, "Restaurant ID and Item ID are required", 201);
+        if (!adminId || !ItemId) {
+            return errorResponse(res, "AdminId ID and Item ID are required", 201);
         }
 
         const restaurant = await Menu.findOneAndUpdate(
-            { restaurantId },
+            { adminId },
             { $pull: { items: { _id: ItemId } } },
             { new: true }
         );
         if (!restaurant) {
-            return errorResponse(res, "Restaurant not found", 201);
+            return errorResponse(res, "Admin  not found", 201);
         }
         return successResponse(res, "Item deleted successfully");
     } catch (error) {
@@ -155,13 +179,13 @@ const DeleteItem = async (req, res) => {
 
 const UpdateItem = async (req, res) => {
     try {
-        const restaurantId = req.params.id;
+        const adminId = req.params.id;
         const { _id, ...updateFields } = req.body;
 
-        if (!restaurantId || !_id) {
+        if (!adminId || !_id) {
             return errorResponse(res, "Restaurant ID and Item ID are required", 201);
         }
-        const menu = await Menu.findOne({ restaurantId });
+        const menu = await Menu.findOne({ adminId });
         if (!menu) {
             return errorResponse(res, "Menu not found", 201);
         }
@@ -335,5 +359,6 @@ module.exports = {
     UpdateItem,
     CreateOrder,
     VerifyPayment,
-    GetAllOrders
+    GetAllOrders,
+    GetAllMenu
 }

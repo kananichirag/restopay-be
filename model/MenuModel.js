@@ -37,9 +37,9 @@ const menuItemSchema = mongoose.Schema({
 
 
 const menuSchema = mongoose.Schema({
-    restaurantId: {
+    adminId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Restaurant",
+        ref: "Admin",
         required: true,
     },
     items: [menuItemSchema],
