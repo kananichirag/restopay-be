@@ -57,7 +57,7 @@ const ChefLogin = async (req, res) => {
 
         const findChef = await ChefModal.findOne({ chef_email: email });
         if (!findChef) {
-            return errorResponse(res, "Chef not found", 201);
+            return errorResponse(res, "Chef not found with this email", 201);
         }
 
         const isMatch = await bcrypt.compare(password, findChef.password);

@@ -96,7 +96,7 @@ const ManagerLogin = async (req, res) => {
 
         const manager = await Manager.findOne({ manager_email: email });
         if (!manager) {
-            return errorResponse(res, "Invalid email ", 201);
+            return errorResponse(res, "Manager not found with this email ", 201);
         }
 
         const isMatch = await bcrypt.compare(password, manager.password);
@@ -355,7 +355,7 @@ const AddChef = async (req, res) => {
             service: "gmail",
             auth: {
                 user: "kananichirag444@gmail.com",
-                pass: "mhuy gdar vgaz vczj",
+                pass: "hmvr oqvx kpsu qohf",
             },
         });
 

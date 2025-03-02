@@ -1,7 +1,7 @@
 const express = require("express");
 const StaffRoute = express.Router();
 const StaffController = require("../controller/StaffController");
-const IsManager = require("../middleware/CheckManager");
+const { IsManager } = require("../middleware/CheckManager");
 const upload = require("../utils/AwsHelper")
 
 StaffRoute.post("/add-member", IsManager, upload.single("profile"), StaffController.AddStaffMember);

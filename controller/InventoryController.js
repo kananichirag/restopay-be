@@ -67,11 +67,11 @@ const DeleteInventory = async (req, res) => {
 const GetAllInventorys = async (req, res) => {
     try {
 
-        if (!req.restaurantId || !req.managerId) {
+        if (!req.restaurantId) {
             return res.status(201).json({ message: "Invalid Request" });
         }
 
-        const inventorys = await Inventory.find({ restaurant_id: req.restaurantId, manager_id: req.managerId });
+        const inventorys = await Inventory.find({ restaurant_id: req.restaurantId });
         if (!inventorys || inventorys.length === 0) {
             return res.status(201).json({ message: "Inventory Not Found" });
         }
@@ -84,4 +84,43 @@ const GetAllInventorys = async (req, res) => {
     }
 }
 
-module.exports = { AddInventory, DeleteInventory, GetAllInventorys };
+
+const UpdateInventory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(201).json({ message: "Please provide the inventory ID" });
+        }
+
+        const inventory = await Inventory.findById(id);
+        if (!inventory) {
+            return res.status(201).json({ message: "Inventory Not Found" });
+        }
+
+        const { name, quantity } = req.body;
+
+        if (!name || !quantity) {
+            return res.status(201).json({ message: "Please provide all the fields" });
+        }
+
+        const parsedQuantity = parseFloat(quantity);
+
+        if (isNaN(parsedQuantity)) {
+            return res.status(201).json({ message: "Quantity and total amount must be numbers." });
+        }
+
+        inventory.name = name;
+        inventory.quantity = parsedQuantity;
+
+        await inventory.save();
+
+        return res.status(200).json({ success: true, message: "Inventory Updated Successfully" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+module.exports = { AddInventory, DeleteInventory, GetAllInventorys, UpdateInventory };
