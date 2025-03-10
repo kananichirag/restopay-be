@@ -24,6 +24,9 @@ const chefschema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Manager",
         required: true
+    },
+    forgot_password_token: {
+        type: String
     }
 });
 

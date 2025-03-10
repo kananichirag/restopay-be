@@ -28,6 +28,9 @@ const managerschema = mongoose.Schema({
     chef_verification_token: {
         type: String
     },
+    forgot_password_token: {
+        type: String
+    },
 });
 
 const Manager = mongoose.model("Manager", managerschema);
