@@ -27,6 +27,9 @@ const adminschema = mongoose.Schema({
     type: String,
     required: true,
   },
+  forgot_password_token: {
+    type: String
+  }
 });
 
 const Admin = mongoose.model("Admin", adminschema);
