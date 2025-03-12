@@ -344,12 +344,46 @@ const AddChef = async (req, res) => {
 
         await manager.save();
 
-        const htmlContent = `
-        <p>Hello,</p>
-        <p>You have been invited to join as a chef. Please click the link below to verify your email and complete your registration:</p>
-        <a href="${process.env.FERONT_URL}/chef-signup?token=${verificationToken}">Verify Email</a>
-        <p>If you did not request this, please ignore this email.</p>
-    `;
+        const htmlContent2 = `
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resto-Pay Chef Invitation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <div style="background-color: #4CAF50; padding: 20px; text-align: center; color: white; border-top-left-radius: 5px; border-top-right-radius: 5px;">
+            <h1 style="margin: 0;">Resto-Pay</h1>
+            <h3 style="margin: 5px 0 0;">Chef Invitation</h3>
+        </div>
+        <div style="padding: 20px 30px; color: #333333;">
+            <p>Hello,</p>
+            <p>You've been invited to join Resto-Pay as a chef! We're excited to have you bring your culinary expertise to our platform.</p>
+            <p>Please click the button below to verify your email and complete your chef registration:</p>
+            <p style="text-align: center;">
+                <a href="${process.env.FERONT_URL}/chef-signup?token=${verificationToken}" 
+                   style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center; margin: 20px 0;">
+                   Verify Email
+                </a>
+            </p>
+        </div>
+        <div style="text-align: center; padding: 20px; font-size: 12px; color: #666666; border-top: 1px solid #eee;">
+            <p>If you did not request this invitation, please ignore this email.</p>
+            <p>© 2025 Resto-Pay. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+        // const htmlContent = `
+        //     < p > Hello,</ >
+        // <p>You have been invited to join as a chef. Please click the link below to verify your email and complete your registration:</p>
+        // <a href="${process.env.FERONT_URL}/chef-signup?token=${verificationToken}">Verify Email</a>
+        // <p>If you did not request this, please ignore this email.</p>
+        // `;
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -363,7 +397,7 @@ const AddChef = async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: "Chef Email Verification",
-            html: htmlContent,
+            html: htmlContent2,
         });
         return res.status(200).json({
             success: true,

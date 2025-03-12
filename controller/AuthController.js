@@ -133,6 +133,37 @@ const ForgotPassword = async (req, res) => {
       admin.forgot_password_token = token;
       await admin.save();
     }
+    const htmlContent2 = `
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Resto-Pay Password Reset</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; color: #333; line-height: 1.6; min-height: 100vh; background-color: #f9f9f9;">
+            <div style="max-width: 600px; margin: 50px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                <div style="background-color: #4CAF50; padding: 30px; text-align: center; color: white; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 10px; font-weight: 700;">Resto-Pay</h1>
+                    <h3 style="font-size: 1.25rem; font-weight: 400;">Password Reset Request</h3>
+                </div>
+                <div style="padding: 20px 30px; color: #333; font-size: 1rem;">
+                    <p>Hello,</p>
+                    <p>You have requested to reset your password. Please click the button below to reset your password:</p>
+                    <p style="text-align: center;">
+                        <a href="${process.env.FERONT_URL}/forgot-password?token=${token}" 
+                           style="display: inline-block; padding: 15px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 30px; font-weight: bold; text-align: center; margin-top: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;">
+                           Reset Password
+                        </a>
+                    </p>
+                </div>
+                <div style="text-align: center; padding: 20px; font-size: 0.875rem; color: #666; background-color: #f9f9f9; border-top: 1px solid #eee;">
+                    <p>If you did not request this password reset, please ignore this email.</p>
+                    <p>© 2025 Resto-Pay. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+    </html>
+`;
 
 
     const htmlContent = `
@@ -154,7 +185,7 @@ const ForgotPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Forgot Password",
-      html: htmlContent,
+      html: htmlContent2,
     });
 
     res.status(200).json({
