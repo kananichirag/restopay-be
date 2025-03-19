@@ -4,7 +4,6 @@ function setupOrderSocket(io) {
             io.emit("newOrder", orderData);
         });
         socket.on("UpdateOrder", (order) => {
-            console.log("UpdateOrder", order);
             io.emit("UpdateOrder", order);
         });
         socket.on("disconnect", () => {

@@ -26,6 +26,11 @@ const AddRestaurant = async (req, res) => {
             );
         }
 
+        const ExitingManager = await Restaurant.findOne({ manager_email: value.manager_email });
+        if (ExitingManager) {
+            return errorResponse(res, "Manager with this email is    already exists", 201);
+        }
+
         const newRestaurant = new Restaurant({
             name: value.name,
             location: value.location,
