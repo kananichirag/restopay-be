@@ -336,7 +336,7 @@ const GetAllOrders = async (req, res) => {
             return errorResponse(res, "Restaurant ID is required", 201);
         }
 
-        const FindOrders = await Order.find({ restaurantId: id });
+        const FindOrders = await Order.find({ restaurantId: id }).sort({ createdAt: -1 });
         if (!FindOrders) {
             return errorResponse(res, "Orders not found", 201);
         }
